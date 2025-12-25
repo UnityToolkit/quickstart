@@ -1,12 +1,9 @@
 {
   "name": "org.unitytoolkit.quickstart",
   "displayName": "Unity Toolkit - Quick Start",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "unity": "2020.3",
-  "author": {
-    "name": "Po-Lung Wu (Taki)",
-    "email": "wupojung@gmail.com"
-  },
+  "author": "Unity Toolkit",
   "description": "Utilities for Unity Project",  
   "dependencies": {
   },
