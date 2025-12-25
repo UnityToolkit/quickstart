@@ -3,6 +3,7 @@ using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
 
 public class QuickStart : EditorWindow
@@ -54,6 +55,11 @@ public class QuickStart : EditorWindow
             _selectedIndex = 2;
         }
 
+        if (GUILayout.Button("下載忽略檔 (.gitignore)"))
+        {
+            DownloadGitIgnore();
+        }
+
         if (GUILayout.Button("取消 (Cancel / Esc)"))
         {
             this.Close();
@@ -85,5 +91,56 @@ public class QuickStart : EditorWindow
 
 
         EditorGUILayout.EndVertical();
+    }
+    
+    
+    private void DownloadGitIgnore()
+    {
+        string url = "https://raw.githubusercontent.com/github/gitignore/refs/heads/main/Unity.gitignore";
+        // 取得專案根目錄 (Assets 的上一層)
+        string projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
+        string savePath = Path.Combine(projectRoot, ".gitignore");
+
+        // 顯示進度條，增加使用者體驗，同時防止重複點擊
+        EditorUtility.DisplayProgressBar("下載中", "正在從 GitHub 取得 Unity.gitignore...", 0.5f);
+
+        try
+        {
+            using (UnityWebRequest request = UnityWebRequest.Get(url))
+            {
+                // 強制等待下載完成 (在 Editor 下這是安全的)
+                var operation = request.SendWebRequest();
+                while (!operation.isDone)
+                {
+                    // 這裡留空，等待下載
+                }
+
+                if (request.result == UnityWebRequest.Result.Success)
+                {
+                    File.WriteAllText(savePath, request.downloadHandler.text);
+                    AssetDatabase.Refresh();
+                    Debug.Log($"<color=cyan> .gitignore 已成功存至: {savePath} </color>");
+                
+                    // 只有成功才跳一次視窗
+                    EditorUtility.ClearProgressBar();
+                    EditorUtility.DisplayDialog("下載成功", ".gitignore 已儲存至專案根目錄", "確定");
+                }
+                else
+                {
+                    Debug.LogError($"下載失敗: {request.error}");
+                    EditorUtility.ClearProgressBar();
+                    EditorUtility.DisplayDialog("下載失敗", "請檢查網路連線或網址是否正確", "確定");
+                }
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"執行錯誤: {e.Message}");
+        }
+        finally
+        {
+            // 確保進度條一定會關閉
+            EditorUtility.ClearProgressBar();
+        }
     }
 }
